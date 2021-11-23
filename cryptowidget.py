@@ -1,4 +1,4 @@
-# @author Andrew Janicke
+# @author MonitorZero
 # Simple scraper for the current prices of ADA, DOGE, and BTC
 
 import requests
@@ -7,32 +7,40 @@ import PySimpleGUI as sg
 import csv
 
 # The theme for the GUI
-sg.theme('Dark Blue 3')
+sg.theme('Dark Black ')
 
 # Setting up the GUI
-layout = [[sg.Text('Crypto Price Widget', font=('Helvetica', 25))],
+layout = [[sg.Text('Total Invested:', font=('Helvetica', 25)), sg.Text('$', font=('Helvetica', 25), key='-grandtotal-')],
 
            # The names of the cryptocurrencies 
-          [sg.Text('ADA:', size=(4, 1)), sg.Text(f'', size=(7,1), key='-adaOwned-'),
-           sg.Text('DOGE:', size=(5, 1)), sg.Text(f'', size=(8,1), key='-dogOwned-'), 
-           sg.Text('BTC:', size=(4, 1)), sg.Text(f'', size=(8,1), key='-btcOwned-')],
+          [sg.Text('ADA:', size=(4, 1), font=(15)), sg.Text('',size=(7,1),font=(15),key='-adaOwned-'),
+           sg.Text('DOGE:', size=(6, 1),font=(15)), sg.Text('',size=(8,1),font=(15),key='-dogOwned-'), 
+           sg.Text('BTC:', size=(4, 1), font=(15)), sg.Text('',size=(8,1),font=(15),key='-btcOwned-')],
 
            # The prices of the cryptocurrencies
-          [sg.Text('     $ ', size=(0, 0)),sg.Text('', size=(10,1), key='-ada-'), 
-           sg.Text('  $', size=(0, 0)),sg.Text('', size=(7,1), key='-dog-'),  
-           sg.Text('       $', size=(0, 0)), sg.Text('', size=(10,1), key='-btc-' )],
+          [sg.Text('      $ ', size=(0, 0),font=(15)),sg.Text('',font=(15),size=(10,1),key='-ada-'), 
+           sg.Text('  $', size=(0, 0),font=(15)),sg.Text('',font=(15),size=(8,1), key='-dog-'),  
+           sg.Text('       $', size=(0, 0),font=(15)), sg.Text('',font=(15),size=(10,1),key='-btc-' )],
 
            # The totals for the cryptocurrencies
-            [sg.Text('Total:', size=(0, 0)), sg.Text('', size=(8,1), key='-adatotal-'),
-             sg.Text('Total:', size=(0, 0)), sg.Text('', size=(8,1), key='-dogtotal-'),
-             sg.Text('Total:', size=(0, 0)), sg.Text('', size=(8,1), key='-btctotal-')],
+            [sg.Text('Total:', size=(0, 0),font=(15)), sg.Text('',font=(15), size=(8,1), key='-adatotal-'),
+             sg.Text('Total:', size=(0, 0),font=(15)), sg.Text('',font=(15), size=(8,1), key='-dogtotal-'),
+             sg.Text('Total:', size=(0, 0),font=(15)), sg.Text('',font=(15), size=(8,1), key='-btctotal-')],
 
            # The buttons
           [sg.Button('Refresh'),sg.Button('Edit'), sg.Button('Exit')]]
 
 # Window GUI setup
-window = sg.Window('Crypto Price Widget', layout, grab_anywhere=True, no_titlebar=False, keep_on_top=False)
+window = sg.Window('Crypto Price Widget', layout, grab_anywhere=True, no_titlebar=True, keep_on_top=False)
 
+# Function to check if there is a crypto.csv file. If not, create one with 0,0,0 and save it
+def check_csv():
+    try:
+        read_crypto()
+    except FileNotFoundError:
+        with open('crypto.csv', 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(['0', '0', '0'])
 
 # Scrape the bitcoin data
 def btc_scrape():
@@ -71,17 +79,19 @@ def edit_crypto():
         crypto = csv.reader(f, delimiter=',')
         crypto_list = list(crypto)
         print(crypto_list)
-        
+
+    sg.theme('Dark Blue')
+
     layout = [
     [sg.Text('Edit your owned cryptocurrencies')],
     [sg.Text('ADA', size=(5,1)), sg.Input(f'{crypto_list[0][0]}', size=(10,1), key='-adaOwn-')],
     [sg.Text('DOGE', size=(5,1)), sg.Input(f'{crypto_list[0][1]}', size=(10,1), key='-dogOwn-')],
     [sg.Text('BTC', size=(5,1)), sg.Input(f'{crypto_list[0][2]}', size=(10,1), key='-btcOwn-')],
+    [sg.Text("")],
     [sg.Button('Save'), sg.Button('Cancel')]
     ]
-    
 
-    win = sg.Window('Edit your owned cryptocurrencies', layout, keep_on_top=True, modal=True)
+    win = sg.Window('Edit your owned cryptocurrencies', layout, keep_on_top=True, modal=True, no_titlebar=True, grab_anywhere=True)
 
     event, values = win.read()
     if event == sg.WINDOW_CLOSED or event == 'Cancel' or event == 'Exit0':
@@ -107,6 +117,7 @@ while True:
     if event == sg.WINDOW_CLOSED or event == 'Exit' or event == 'Exit0':
         break
     if event == 'Refresh':
+        check_csv()
         ownedCrypto = read_crypto()
         btc_price = btc_scrape()
         doge_price = doge_scrape()
@@ -117,8 +128,11 @@ while True:
         window['-adaOwned-'].update(ownedCrypto[0][0])
         window['-dogOwned-'].update(ownedCrypto[0][1])
         window['-btcOwned-'].update(ownedCrypto[0][2])
-        window['-adatotal-'].update(str(float(ownedCrypto[0][0]) * ada_price))
-        window['-dogtotal-'].update(str(float(ownedCrypto[0][1]) * doge_price))
-        window['-btctotal-'].update(str(float(ownedCrypto[0][2]) * btc_price))
+        window['-adatotal-'].update(f'{float(ownedCrypto[0][0]) * ada_price:.2f}')
+        window['-dogtotal-'].update(f'{float(ownedCrypto[0][1]) * doge_price:.2f}')
+        window['-btctotal-'].update(f'{float(ownedCrypto[0][2]) * btc_price:.2f}')
+        # Update the grandtotal key and format for currency display
+        window['-grandtotal-'].update(f'$ {float(ownedCrypto[0][0]) * ada_price + float(ownedCrypto[0][1]) * doge_price + float(ownedCrypto[0][2]) * btc_price:,.2f}')
     if event == 'Edit':
+        check_csv()
         edit_crypto()
