@@ -83,7 +83,8 @@ def edit_crypto():
     sg.theme('Dark Blue')
 
     layout = [
-    [sg.Text('Edit your owned cryptocurrencies')],
+    [sg.Text('Edit owned crypto.')],
+    [sg.Text('')],
     [sg.Text('ADA', size=(5,1)), sg.Input(f'{crypto_list[0][0]}', size=(10,1), key='-adaOwn-')],
     [sg.Text('DOGE', size=(5,1)), sg.Input(f'{crypto_list[0][1]}', size=(10,1), key='-dogOwn-')],
     [sg.Text('BTC', size=(5,1)), sg.Input(f'{crypto_list[0][2]}', size=(10,1), key='-btcOwn-')],
@@ -122,7 +123,7 @@ while True:
         btc_price = btc_scrape()
         doge_price = doge_scrape()
         ada_price = ada_scrape()
-        window['-btc-'].update(btc_price)
+        window['-btc-'].update(f' {btc_price:,.2f}')
         window['-dog-'].update(doge_price)
         window['-ada-'].update(ada_price)
         window['-adaOwned-'].update(ownedCrypto[0][0])
@@ -130,7 +131,7 @@ while True:
         window['-btcOwned-'].update(ownedCrypto[0][2])
         window['-adatotal-'].update(f'{float(ownedCrypto[0][0]) * ada_price:.2f}')
         window['-dogtotal-'].update(f'{float(ownedCrypto[0][1]) * doge_price:.2f}')
-        window['-btctotal-'].update(f'{float(ownedCrypto[0][2]) * btc_price:.2f}')
+        window['-btctotal-'].update(f'{float(ownedCrypto[0][2]) * btc_price:,.2f}')
         # Update the grandtotal key and format for currency display
         window['-grandtotal-'].update(f'$ {float(ownedCrypto[0][0]) * ada_price + float(ownedCrypto[0][1]) * doge_price + float(ownedCrypto[0][2]) * btc_price:,.2f}')
     if event == 'Edit':
